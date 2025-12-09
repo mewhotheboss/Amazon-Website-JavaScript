@@ -5,6 +5,22 @@ import { loadCart } from "../data/cart.js";
 // import '../data/cart-class.js';
 // import '../data/backend-practice.js'
 
+async function loadPage() {
+    await loadProductsFetch();
+
+    await new Promise((resolve) => {
+        loadCart(() => {
+            resolve();
+        });
+    });
+
+    renderOrderSummary();
+    renderPaymentSummary();
+}
+
+loadPage();
+
+/*
 // built in class need to give a function
 Promise.all([
     loadProductsFetch(),
@@ -18,6 +34,7 @@ Promise.all([
     renderOrderSummary();
     renderPaymentSummary();
 })
+*/
 
 /*
 // built in class need to give a function
