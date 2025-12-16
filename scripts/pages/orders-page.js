@@ -1,25 +1,39 @@
 import { orders } from '../../data/orders.js';
+import { cart } from '../../data/cart.js';
 import { getProduct, loadProductsFetch } from '../../data/products.js';
 import { formatCurrency } from '../utils/money.js';
 import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
-import { cart } from '../../data/cart.js';
 
 async function loadPage() {
-  // 1. We must load the products data first, otherwise we can't show names/images
   await loadProductsFetch();
 
   let cartQuantity = 0;
   cart.forEach((cartItem) => {
     cartQuantity += cartItem.quantity;
   });
-
-  // Update the cart number in the top right
   document.querySelector('.cart-quantity').innerHTML = cartQuantity;
 
+  renderOrdersGrid(orders);
+}
+
+function renderOrdersGrid(ordersToRender) {
   let ordersHTML = '';
 
-  // 2. Loop through each order in your history
-  orders.forEach((order) => {
+  // --- MODIFIED SECTION START ---
+  if (ordersToRender.length === 0) {
+      document.querySelector('.js-orders-grid').innerHTML = `
+        <div class="empty-orders-message">
+          <h2>No orders found.</h2>
+          <a href="amazon.html">
+            <button class="button-primary">View products</button>
+          </a>
+        </div>
+      `;
+      return;
+  }
+  // --- MODIFIED SECTION END ---
+
+  ordersToRender.forEach((order) => {
     const orderTimeString = dayjs(order.orderTime).format('MMMM D');
 
     ordersHTML += `
@@ -49,19 +63,25 @@ async function loadPage() {
   });
 
   document.querySelector('.js-orders-grid').innerHTML = ordersHTML;
+
+  document.querySelectorAll('.js-complete-order').forEach((button) => {
+    button.addEventListener('click', () => {
+      const { orderId, productId } = button.dataset;
+      removeFromOrder(orderId, productId);
+      renderOrdersGrid(orders); 
+    });
+  });
 }
 
-// 3. Helper function to generate HTML for the products INSIDE an order
 function productsListHTML(order) {
   let productsHTML = '';
+
+  if (!order.products) return '';
 
   order.products.forEach((productDetails) => {
     const product = getProduct(productDetails.productId);
 
-    if (!product) {
-      // If product not found, skip or use placeholders
-      return;
-    }
+    if (!product) return;
 
     productsHTML += `
       <div class="product-image-container">
@@ -90,11 +110,50 @@ function productsListHTML(order) {
             Track package
           </button>
         </a>
+        
+        <button class="track-package-button button-secondary js-complete-order"
+          style="margin-top: 10px;" 
+          data-order-id="${order.id}" 
+          data-product-id="${product.id}">
+          Complete
+        </button>
+
       </div>
     `;
   });
 
   return productsHTML;
 }
+
+function removeFromOrder(orderId, productId) {
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    if (orderIndex === -1) return;
+
+    const order = orders[orderIndex];
+    order.products = order.products.filter(p => p.productId !== productId);
+
+    if (order.products.length === 0) {
+        orders.splice(orderIndex, 1);
+    }
+
+    localStorage.setItem('orders', JSON.stringify(orders));
+}
+
+function handleSearch() {
+    const searchInput = document.querySelector('.search-bar');
+    const searchTerm = searchInput.value.toLowerCase();
+
+    const filteredOrders = orders.filter((order) => {
+        const orderDateString = dayjs(order.orderTime).format('MMMM D').toLowerCase();
+        return orderDateString.includes(searchTerm);
+    });
+
+    renderOrdersGrid(filteredOrders);
+}
+
+document.querySelector('.search-button').addEventListener('click', handleSearch);
+document.querySelector('.search-bar').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') handleSearch();
+});
 
 loadPage();
