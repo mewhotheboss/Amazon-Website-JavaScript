@@ -2,10 +2,19 @@ import { orders } from '../../data/orders.js';
 import { getProduct, loadProductsFetch } from '../../data/products.js';
 import { formatCurrency } from '../utils/money.js';
 import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
+import { cart } from '../../data/cart.js';
 
 async function loadPage() {
   // 1. We must load the products data first, otherwise we can't show names/images
   await loadProductsFetch();
+
+  let cartQuantity = 0;
+  cart.forEach((cartItem) => {
+    cartQuantity += cartItem.quantity;
+  });
+
+  // Update the cart number in the top right
+  document.querySelector('.cart-quantity').innerHTML = cartQuantity;
 
   let ordersHTML = '';
 
@@ -50,8 +59,8 @@ function productsListHTML(order) {
     const product = getProduct(productDetails.productId);
 
     if (!product) {
-        // If product not found, skip or use placeholders
-        return; 
+      // If product not found, skip or use placeholders
+      return;
     }
 
     productsHTML += `

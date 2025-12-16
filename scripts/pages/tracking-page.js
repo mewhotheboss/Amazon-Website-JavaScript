@@ -1,9 +1,17 @@
 import { orders } from '../../data/orders.js';
 import { getProduct, loadProductsFetch } from '../../data/products.js';
 import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
+import { cart } from '../../data/cart.js';
 
 async function loadPage() {
     await loadProductsFetch();
+
+    let cartQuantity = 0;
+  cart.forEach((cartItem) => {
+    cartQuantity += cartItem.quantity;
+  });
+
+  document.querySelector('.cart-quantity').innerHTML = cartQuantity;
 
     const url = new URL(window.location.href);
     const orderId = url.searchParams.get('orderId');

@@ -62,6 +62,16 @@ export function renderOrderSummary() {
             </div>
           </div>
     `;
+
+    let cartQuantity = 0;
+    cart.forEach((cartItem) => {
+      cartQuantity += cartItem.quantity;
+    });
+
+    const homeLink = document.querySelector('.return-to-home-link');
+    if (homeLink) {
+      homeLink.innerHTML = `${cartQuantity} items`;
+    }
   });
 
   function deliveryOptionsHTML(matchingProduct, cartItem) {
