@@ -4,11 +4,15 @@ import { formatCurrency } from './utils/money.js';
 
 loadProducts(renderProductsGrid);
 
-function renderProductsGrid() {
+function renderProductsGrid(productsToRender) {
+  
+  if (!productsToRender) {
+    productsToRender = products;
+  }
 
   let productsHTML = '';
 
-  products.forEach((product) => {
+  productsToRender.forEach((product) => {
     productsHTML += `
     <div class="product-container">
         <div class="product-image-container">
@@ -65,22 +69,51 @@ function renderProductsGrid() {
 
   function updateCartQuantity() {
     let cartQuantity = 0;
-
     cart.forEach((cartItem) => {
       cartQuantity += cartItem.quantity;
     });
-
     document.querySelector('.js-cart-quantity').innerHTML = cartQuantity;
   }
+  
+  // Run this once to set the cart number on page load
+  updateCartQuantity();
 
   document.querySelectorAll('.js-add-to-cart').forEach((button) => {
     button.addEventListener('click', () => {
       const productId = button.dataset.productId;
-
       addToCart(productId);
-
       updateCartQuantity();
-
     });
   });
 }
+
+// The Search Function
+function handleSearch() {
+  const searchInput = document.querySelector('.search-bar');
+  const searchTerm = searchInput.value.toLowerCase();
+
+  const filteredProducts = products.filter((product) => {
+    // Check if the name matches
+    const nameMatch = product.name.toLowerCase().includes(searchTerm);
+    
+    // Check if any keywords match (e.g. searching "gym" for socks)
+    // We use optional chaining '?' because some products might not have keywords
+    const keywordMatch = product.keywords?.some((keyword) => 
+      keyword.toLowerCase().includes(searchTerm)
+    );
+
+    return nameMatch || keywordMatch;
+  });
+
+  // Re-render only the matching products
+  renderProductsGrid(filteredProducts);
+}
+
+//Add Event Listeners for the Search Button and 'Enter' key
+document.querySelector('.search-button').addEventListener('click', handleSearch);
+
+document.querySelector('.search-bar').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    handleSearch();
+  }
+});
