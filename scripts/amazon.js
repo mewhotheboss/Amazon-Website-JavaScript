@@ -93,11 +93,8 @@ function handleSearch() {
   const searchTerm = searchInput.value.toLowerCase();
 
   const filteredProducts = products.filter((product) => {
-    // Check if the name matches
     const nameMatch = product.name.toLowerCase().includes(searchTerm);
     
-    // Check if any keywords match (e.g. searching "gym" for socks)
-    // We use optional chaining '?' because some products might not have keywords
     const keywordMatch = product.keywords?.some((keyword) => 
       keyword.toLowerCase().includes(searchTerm)
     );
@@ -105,11 +102,9 @@ function handleSearch() {
     return nameMatch || keywordMatch;
   });
 
-  // Re-render only the matching products
   renderProductsGrid(filteredProducts);
 }
 
-//Add Event Listeners for the Search Button and 'Enter' key
 document.querySelector('.search-button').addEventListener('click', handleSearch);
 
 document.querySelector('.search-bar').addEventListener('keydown', (event) => {
